@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
         if (std::strcmp(argv[i], "--fifo") == 0 && i + 1 < argc)
             fifo_path = argv[++i];
         else if (std::strcmp(argv[i], "--rate") == 0 && i + 1 < argc)
-            rate_hz = std::atoi(argv[++i]);
+            rate_hz = std::atoi(argv[++i]);  // used in startup log; producer loop hardcodes 1kHz
     }
 
     std::signal(SIGTERM, sigHandler);
