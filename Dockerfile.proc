@@ -1,0 +1,24 @@
+FROM python:3.12-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd --system --no-create-home --uid 1002 procuser
+
+WORKDIR /app
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir uv && uv sync --frozen 2>/dev/null || pip install -e .
+
+COPY processor/ processor/
+
+USER procuser
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=5 \
+    CMD curl -sf http://localhost:8091/api/health || exit 1
+
+ENV FIFO_PATH=/data/sim.fifo
+ENV PROC_PORT=8091
+
+ENTRYPOINT ["python", "-m", "processor.main"]

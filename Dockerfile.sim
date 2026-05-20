@@ -1,0 +1,32 @@
+# Stage 1 — Build
+FROM gcc:12-bookworm AS builder
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY CMakeLists.txt .
+COPY include/ include/
+COPY src/ src/
+
+RUN cmake -B build -S . \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_TESTS=OFF \
+      -DCMAKE_POLICY_DEFAULT_CMP0135=NEW && \
+    cmake --build build --target satellite_sim -j"$(nproc)"
+
+# Stage 2 — Minimal runtime
+FROM debian:bookworm-slim
+
+RUN useradd --system --no-create-home --uid 1001 simuser
+
+COPY --from=builder /src/build/satellite_sim /usr/local/bin/satellite_sim
+
+USER simuser
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD pgrep satellite_sim || exit 1
+
+ENTRYPOINT ["/usr/local/bin/satellite_sim"]
+CMD ["--fifo", "/data/sim.fifo", "--rate", "1000"]

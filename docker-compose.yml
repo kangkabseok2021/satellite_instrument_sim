@@ -1,0 +1,27 @@
+services:
+  proc:
+    build:
+      context: .
+      dockerfile: Dockerfile.proc
+    ports:
+      - "8091:8091"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    environment:
+      - FIFO_PATH=/data/sim.fifo
+      - PROC_PORT=8091
+
+  sim:
+    build:
+      context: .
+      dockerfile: Dockerfile.sim
+    volumes:
+      - ./data:/data
+    depends_on:
+      proc:
+        condition: service_started
+    restart: unless-stopped
+    environment:
+      - SIM_SOLAR=${SIM_SOLAR:-}
+    command: ["--fifo", "/data/sim.fifo", "--rate", "1000"]
