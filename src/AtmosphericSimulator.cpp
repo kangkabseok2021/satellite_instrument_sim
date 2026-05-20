@@ -12,13 +12,13 @@ AtmosphericSimulator::AtmosphericSimulator(const std::string& pipe_path,
 AtmosphericSimulator::~AtmosphericSimulator() { stop(); }
 
 void AtmosphericSimulator::start() {
-    running_.store(true, std::memory_order_relaxed);
+    running_.store(true, std::memory_order_release);
     producer_ = std::thread(&AtmosphericSimulator::producerLoop, this);
     drainer_  = std::thread(&AtmosphericSimulator::drainLoop,    this);
 }
 
 void AtmosphericSimulator::stop() {
-    running_.store(false, std::memory_order_relaxed);
+    running_.store(false, std::memory_order_release);
     if (producer_.joinable()) producer_.join();
     if (drainer_.joinable())  drainer_.join();
 }
@@ -27,7 +27,7 @@ void AtmosphericSimulator::producerLoop() {
     uint16_t altitude = 500;
     auto next = steady_clock::now();
 
-    while (running_.load(std::memory_order_relaxed)) {
+    while (running_.load(std::memory_order_acquire)) {
         next += microseconds(1000);  // 1 kHz = 1000 µs period
 
         TelemetryFrame f{};
