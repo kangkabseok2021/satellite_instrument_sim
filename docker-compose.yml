@@ -1,5 +1,6 @@
 services:
   proc:
+    image: ${PROC_IMAGE:-satellite-proc:latest}
     build:
       context: .
       dockerfile: Dockerfile.proc
@@ -13,6 +14,7 @@ services:
       - PROC_PORT=8091
 
   sim:
+    image: ${SIM_IMAGE:-satellite-sim:latest}
     build:
       context: .
       dockerfile: Dockerfile.sim
