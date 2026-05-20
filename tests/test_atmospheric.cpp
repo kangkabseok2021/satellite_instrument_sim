@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "AtmosphericModel.h"
-#include <cmath>
 
 TEST(AtmosphericModel, BackscatterDecaysWithRange) {
     AtmosphericModel::Config cfg;

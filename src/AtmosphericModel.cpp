@@ -30,11 +30,12 @@ AtmosphericModel::Sample AtmosphericModel::sample(uint16_t altitude_m) {
                    static_cast<double>(INT16_MIN),
                    static_cast<double>(INT16_MAX)));
 
-    // SNR x10: signal-to-noise ratio scaled by I0 and encoded x10.
-    // Normalise noise by I0 so the ratio is relative to the source power.
+    // SNR x10: signal normalised to source power, scaled to fit uint8 range.
+    // signal is in units of I0 * beta, so dividing by shot_sigma and scaling by I0
+    // brings it to [0, 255] for typical operating conditions.
     double snr_linear = (cfg_.shot_sigma > 0.0)
         ? std::max(signal, 0.0) * cfg_.I0 / cfg_.shot_sigma
-        : 25.0 * cfg_.I0;
+        : 25.0;
     uint8_t snr = static_cast<uint8_t>(std::clamp(snr_linear * 10.0, 0.0, 255.0));
 
     uint8_t solar_flag = cfg_.solar_contaminated ? 1u : 0u;
